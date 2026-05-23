@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalkulator Coin Fisch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #1e1e2e;
+      --surface: rgba(255,255,255,0.07);
+      --surface2: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.12);
+      --accent: #7b5ea7;
+      --accent2: #c084fc;
+      --gold: #f9c846;
+      --text: #e8e8f0;
+      --muted: #9090aa;
+      --cs: #60a5fa;
+      --ss: #34d399;
+      --red: #f87171;
+      --radius: 14px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #2a2a40 0%, #1a1a2e 50%, #2a2040 100%);
+      min-height: 100vh;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .container { width: 100%; max-width: 480px; }
+
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+
+    .glass {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 18px;
+      padding: 28px 24px;
+      margin-bottom: 16px;
+    }
+
+    /* Coin type tabs */
+    .coin-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: rgba(0,0,0,0.25);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 22px;
+      gap: 4px;
+    }
+    .coin-tab {
+      background: transparent;
+      border: none;
+      border-radius: 7px;
+      padding: 10px;
+      cursor: pointer;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .coin-tab.active-cs {
+      background: rgba(96,165,250,0.2);
+      color: var(--cs);
+      box-shadow: 0 1px 8px rgba(0,0,0,0.3);
+    }
+    .coin-tab.active-ss {
+      background: rgba(52,211,153,0.2);
+      color: var(--ss);
+      box-shadow: 0 1px 8px rgba(0,0,0,0.3);
+    }
+
+    /* Mode select */
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-family: 'Space Mono', monospace;
+    }
+    .select-wrap {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .select-wrap select {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 13px 16px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+    }
+    .select-wrap::after {
+      content: '▼';
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 10px;
+      pointer-events: none;
+    }
+
+    /* Input */
+    .input-wrap {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .input-wrap input {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 18px;
+      font-family: 'Space Mono', monospace;
+      color: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+      -moz-appearance: textfield;
+    }
+    .input-wrap input::-webkit-outer-spin-button,
+    .input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .input-wrap input:focus { border-color: rgba(255,255,255,0.35); }
+
+    /* Tax badges */
+    .tax-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .tax-badge {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+    .tax-badge span:first-child { color: var(--muted); }
+    .tax-badge span:last-child {
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    /* Result button */
+    .result-btn {
+      width: 100%;
+      background: rgba(255,255,255,0.12);
+      border: none;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 18px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      color: #fff;
+      cursor: default;
+      text-align: center;
+      letter-spacing: -0.3px;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .result-btn.cs { background: rgba(96,165,250,0.18); color: var(--cs); }
+    .result-btn.ss { background: rgba(52,211,153,0.18); color: var(--ss); }
+    .result-btn.empty { color: var(--muted); font-size: 14px; }
+
+    /* Explanation row */
+    .explain-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      margin-top: 12px;
+      padding: 0 2px;
+    }
+    .explain-row span.val { color: var(--text); }
+
+    /* Rate info */
+    .rate-strip {
+      text-align: center;
+      font-size: 12px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      padding: 12px 0 4px;
+    }
+    .rate-strip strong { color: #fff; }
+
+    /* Quick amounts */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+      margin-top: 14px;
+    }
+    .quick-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-family: 'Space Mono', monospace;
+    }
+    .quick-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 7px;
+      padding: 8px 4px;
+      cursor: pointer;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .quick-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    .quick-btn.active-cs {
+      background: rgba(96,165,250,0.22);
+      border-color: rgba(96,165,250,0.5);
+      color: var(--cs);
+    }
+    .quick-btn.active-ss {
+      background: rgba(52,211,153,0.22);
+      border-color: rgba(52,211,153,0.5);
+      color: var(--ss);
+    }
+    .quick-btn .btn-count {
+      display: block;
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .quick-btn.active-cs .btn-count { color: var(--cs); opacity: 0.8; }
+    .quick-btn.active-ss .btn-count { color: var(--ss); opacity: 0.8; }
+
+    /* Conversion info strip */
+    .conv-strip {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 14px;
+      font-size: 12px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      text-align: center;
+      display: none;
+    }
+    .conv-strip.show { display: block; }
+    .conv-strip strong { color: #fff; }
+    .conv-strip .cs-val { color: var(--cs); }
+    .conv-strip .ss-val { color: var(--ss); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Kalkulator Coin Fisch</h1>
+
+  <div class="glass">
+
+    <!-- Coin Type Tabs -->
+    <div class="coin-tabs">
+      <button class="coin-tab active-cs" id="tab-cs" onclick="setCoinType('CS')">💙 Koin C$</button>
+      <button class="coin-tab" id="tab-ss" onclick="setCoinType('SS')">💚 Koin S$</button>
+    </div>
+
+    <!-- Mode -->
+    <div class="field-label">Pilih Mode</div>
+    <div class="select-wrap">
+      <select id="mode-select" onchange="onModeChange()">
+        <option value="buyer">Buyer</option>
+        <option value="seller">Seller</option>
+      </select>
+    </div>
+
+    <!-- Input label changes based on mode -->
+    <div class="field-label" id="input-label">Coin After Tax</div>
+    <div class="input-wrap">
+      <input type="number" id="main-input" placeholder="0" min="0" oninput="calculate()" />
+    </div>
+
+    <!-- Tax info -->
+    <div class="field-label">Pajak (Fixed)</div>
+    <div class="tax-row" id="tax-row">
+      <!-- filled by JS -->
+    </div>
+
+    <!-- Result -->
+    <div class="result-btn empty" id="result-display">Masukkan jumlah koin...</div>
+
+    <!-- Explanation -->
+    <div class="explain-row" id="explain-row" style="display:none">
+      <span id="explain-left"></span>
+      <span id="explain-right"></span>
+    </div>
+
+    <!-- Conversion strip (shows C$ <-> S$ equivalent) -->
+    <div class="conv-strip" id="conv-strip"></div>
+
+    <!-- Quick amounts -->
+    <div class="quick-label">⚡ Nilai Cepat</div>
+    <div class="quick-grid" id="quick-grid"></div>
+
+  </div>
+
+  <div class="rate-strip">Rate konversi: <strong>100.000 C$</strong> = <strong style="color:var(--ss)">1 S$</strong></div>
+</div>
+
+<script>
+  const RATE = 100000; // 100K C$ = 1 S$
+  const TAX_TRANSFER = 0.10;
+  const TAX_SALE = 0.10;
+
+  let coinType = 'CS';
+  let mode = 'buyer';
+
+  // Quick base values: 1B, 5B, 10B, 20B, 100B (in C$)
+  const quickCS = [1_000_000_000, 5_000_000_000, 10_000_000_000, 20_000_000_000, 100_000_000_000];
+  // Quick base values for S$ (equivalent scale: 10K, 50K, 100K, 200K, 1M)
+  const quickSS = [10_000, 50_000, 100_000, 200_000, 1_000_000];
+
+  // Track click count per button index
+  let quickClickCount = [0, 0, 0, 0, 0];
+  let lastActiveBtn = -1;
+
+  function setCoinType(type) {
+    coinType = type;
+    document.getElementById('tab-cs').className = 'coin-tab' + (type === 'CS' ? ' active-cs' : '');
+    document.getElementById('tab-ss').className = 'coin-tab' + (type === 'SS' ? ' active-ss' : '');
+    document.getElementById('main-input').value = '';
+    resetQuickState();
+    renderUI();
+    calculate();
+  }
+
+  function onModeChange() {
+    mode = document.getElementById('mode-select').value;
+    document.getElementById('main-input').value = '';
+    resetQuickState();
+    renderUI();
+    calculate();
+  }
+
+  function resetQuickState() {
+    quickClickCount = [0, 0, 0, 0, 0];
+    lastActiveBtn = -1;
+  }
+
+  function renderUI() {
+    // Input label
+    document.getElementById('input-label').textContent =
+      mode === 'buyer' ? 'Coin After Tax' : 'Coin Before Tax';
+
+    // Tax row
+    const taxRow = document.getElementById('tax-row');
+    if (mode === 'buyer') {
+      taxRow.innerHTML = `<div class="tax-badge"><span>Pajak Transfer</span><span>10%</span></div>`;
+    } else {
+      taxRow.innerHTML = `
+        <div class="tax-badge"><span>Pajak Transfer</span><span>10%</span></div>
+        <div class="tax-badge"><span>Pajak Penjualan</span><span>10%</span></div>`;
+    }
+
+    renderQuickButtons();
+  }
+
+  function renderQuickButtons() {
+    const vals = coinType === 'CS' ? quickCS : quickSS;
+    const activeClass = coinType === 'CS' ? 'active-cs' : 'active-ss';
+    document.getElementById('quick-grid').innerHTML = vals.map((v, i) => {
+      const count = quickClickCount[i];
+      const totalVal = v * (count || 1);
+      const isActive = lastActiveBtn === i;
+      const countLabel = count > 1 ? `<span class="btn-count">×${count}</span>` : `<span class="btn-count">&nbsp;</span>`;
+      return `<button class="quick-btn${isActive ? ' ' + activeClass : ''}" id="qbtn-${i}" onclick="onQuickClick(${i})">${fmtShort(v)}${countLabel}</button>`;
+    }).join('');
+  }
+
+  function onQuickClick(idx) {
+    const vals = coinType === 'CS' ? quickCS : quickSS;
+    const baseVal = vals[idx];
+
+    if (lastActiveBtn === idx) {
+      // Same button clicked again → multiply
+      quickClickCount[idx]++;
+    } else {
+      // New button → reset other, start fresh
+      quickClickCount = [0, 0, 0, 0, 0];
+      quickClickCount[idx] = 1;
+      lastActiveBtn = idx;
+    }
+
+    const totalVal = baseVal * quickClickCount[idx];
+    document.getElementById('main-input').value = totalVal;
+    renderQuickButtons();
+    calculate();
+  }
+
+  function calculate() {
+    const raw = parseFloat(document.getElementById('main-input').value);
+    const resultEl = document.getElementById('result-display');
+    const explainEl = document.getElementById('explain-row');
+    const convEl = document.getElementById('conv-strip');
+
+    if (!raw || raw <= 0) {
+      resultEl.className = 'result-btn empty';
+      resultEl.textContent = 'Masukkan jumlah koin...';
+      explainEl.style.display = 'none';
+      convEl.className = 'conv-strip';
+      return;
+    }
+
+    const unit = coinType === 'CS' ? 'C$' : 'S$';
+    const colorClass = coinType === 'CS' ? 'cs' : 'ss';
+
+    let resultVal, resultText;
+
+    if (mode === 'buyer') {
+      // Buyer wants X coin after tax → must list X / 0.9
+      resultVal = raw / (1 - TAX_TRANSFER);
+      resultText = `${fmt(resultVal)} ${unit} yang harus dipasang`;
+    } else {
+      // Seller has X before tax → after transfer 10% + sale 10% = × 0.81
+      resultVal = raw * (1 - TAX_TRANSFER) * (1 - TAX_SALE);
+      resultText = `${fmt(resultVal)} ${unit} (After Tax)`;
+    }
+
+    resultEl.className = `result-btn ${colorClass}`;
+    resultEl.textContent = resultText;
+
+    // Explanation
+    explainEl.style.display = 'flex';
+    if (mode === 'buyer') {
+      document.getElementById('explain-left').innerHTML = `Input: <span class="val">${fmt(raw)} ${unit}</span>`;
+      document.getElementById('explain-right').innerHTML = `Pasang: <span class="val">${fmt(resultVal)} ${unit}</span>`;
+    } else {
+      const afterTransfer = raw * (1 - TAX_TRANSFER);
+      document.getElementById('explain-left').innerHTML = `Setelah transfer: <span class="val">${fmt(afterTransfer)} ${unit}</span>`;
+      document.getElementById('explain-right').innerHTML = `Setelah jual: <span class="val">${fmt(resultVal)} ${unit}</span>`;
+    }
+
+    // Conversion strip — FIXED: use fmtSS() for correct decimal display
+    if (coinType === 'CS') {
+      const inputSS  = fmtSS(raw / RATE);
+      const resultSS = fmtSS(resultVal / RATE);
+      convEl.className = 'conv-strip show';
+      convEl.innerHTML = mode === 'buyer'
+        ? `<span class="cs-val">${fmt(raw)} C$</span> ≈ <span class="ss-val">${inputSS} S$</span> &nbsp;|&nbsp; Pasang: <span class="cs-val">${fmt(resultVal)} C$</span> ≈ <span class="ss-val">${resultSS} S$</span>`
+        : `Input: <span class="cs-val">${fmt(raw)} C$</span> ≈ <span class="ss-val">${inputSS} S$</span> &nbsp;|&nbsp; Hasil: <span class="cs-val">${fmt(resultVal)} C$</span> ≈ <span class="ss-val">${resultSS} S$</span>`;
+    } else {
+      const inputCS  = fmtCS(raw * RATE);
+      const resultCS = fmtCS(resultVal * RATE);
+      convEl.className = 'conv-strip show';
+      convEl.innerHTML = mode === 'buyer'
+        ? `<span class="ss-val">${fmt(raw)} S$</span> ≈ <span class="cs-val">${inputCS} C$</span> &nbsp;|&nbsp; Pasang: <span class="ss-val">${fmt(resultVal)} S$</span> ≈ <span class="cs-val">${resultCS} C$</span>`
+        : `Input: <span class="ss-val">${fmt(raw)} S$</span> ≈ <span class="cs-val">${inputCS} C$</span> &nbsp;|&nbsp; Hasil: <span class="ss-val">${fmt(resultVal)} S$</span> ≈ <span class="cs-val">${resultCS} C$</span>`;
+    }
+  }
+
+  // Format for current coin type
+  function fmt(n) {
+    if (n == null || isNaN(n)) return '0';
+    if (coinType === 'SS') return fmtSS(n);
+    return fmtCS(n);
+  }
+
+  // Format C$ (integer, no decimals)
+  function fmtCS(n) {
+    return Math.round(n).toLocaleString('id-ID');
+  }
+
+  // Format S$ — show up to 2 decimals, trim trailing zeros
+  // e.g. 11111.111... → "11.111,11"  |  10.0 → "10"
+  function fmtSS(n) {
+    const rounded = Math.round(n * 100) / 100;
+    return rounded.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function fmtShort(n) {
+    if (n >= 1_000_000_000) return (n / 1_000_000_000) + 'B';
+    if (n >= 1_000_000)     return (n / 1_000_000) + 'M';
+    if (n >= 1_000)         return (n / 1_000) + 'K';
+    return n;
+  }
+
+  // Init
+  renderUI();
+</script>
+</body>
+</html>
